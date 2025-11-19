@@ -1,11 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ref, onValue, set, update, get, remove, onDisconnect } from 'firebase/database';
 import { database, isFirebaseConfigured } from './config/firebase';
 import { NumberDisplay } from './components/NumberDisplay';
 import { STEMParticles } from './components/STEMParticles';
 import { RobotMascot } from './components/RobotMascot';
-import { RecentNumbers } from './components/RecentNumbers';
+
+import {
+  LuckyNumber,
+  Prize,
+  prizeData,
+  RecentNumbers,
+} from "./components/RecentNumbers";
 import { AdminKeyDialog } from './components/AdminKeyDialog';
 import { ViewerNotification } from './components/ViewerNotification';
 import { WinnerCelebration } from './components/WinnerCelebration';
@@ -16,10 +22,7 @@ import backgroundImage from './assets/bgr.jpg';
 import fptLogo from 'figma:asset/b6356dbc2eb526e3e2efc9fb62671358d845ef9a.png';
 import stemDayLogo from 'figma:asset/92e9417244f1b12c23a75e49f37a6d9c60ae2460.png';
 
-interface LuckyNumber {
-  number: string;
-  timestamp: string;
-}
+import PrizeSelect from "./components/PrizeSelect";
 
 interface SpinningState {
   thousands: boolean;
@@ -54,6 +57,7 @@ export default function App() {
   const [antAnimating, setAntAnimating] = useState(false);
   const [recentNumbers, setRecentNumbers] = useState<LuckyNumber[]>([]);
   const [showSaveNotification, setShowSaveNotification] = useState(false);
+  const [selectedPrize, setSelectedPrize] = useState<Prize>(Prize.THIRD);
 
   // Firebase Realtime states
   const [isAdmin, setIsAdmin] = useState(false);
@@ -279,7 +283,7 @@ export default function App() {
       second: '2-digit',
     });
 
-    const newEntry: LuckyNumber = { number, timestamp };
+    const newEntry: LuckyNumber = { number, timestamp, prize: selectedPrize };
     const updated = [newEntry, ...recentNumbers].slice(0, 10);
 
     if (!isDemoMode && database) {
@@ -445,20 +449,6 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h1
-            className="text-5xl tracking-wider mb-2"
-            style={{
-              color: '#fff',
-              textShadow: `
-                0 0 10px rgba(0, 255, 255, 1),
-                0 0 20px rgba(0, 255, 255, 0.8),
-                0 0 30px rgba(0, 255, 255, 0.6)
-              `,
-              fontWeight: 900,
-            }}
-          >
-            LUCKY NUMBER
-          </h1>
           <motion.div
             animate={{
               opacity: [0.8, 1, 0.8],
@@ -469,7 +459,7 @@ export default function App() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="mt-2"
+            className="mb-2"
           >
             <img
               src={stemDayLogo}
@@ -477,6 +467,35 @@ export default function App() {
               className="h-16 object-contain mx-auto drop-shadow-[0_0_30px_rgba(0,255,255,0.6)]"
             />
           </motion.div>
+          <h1
+            className="text-5xl tracking-wider mb-4"
+            style={{
+              color: "#fff",
+              textShadow: `
+                0 0 10px rgba(0, 255, 255, 1),
+                0 0 20px rgba(0, 255, 255, 0.8),
+                0 0 30px rgba(0, 255, 255, 0.6)
+              `,
+              fontWeight: 900,
+            }}
+          >
+            LUCKY NUMBER
+          </h1>
+          <h2
+            className="text-4xl tracking-wider"
+            style={{
+              color: "#fff",
+              textShadow: `
+                0 0 10px rgba(0, 255, 255, 1),
+                0 0 20px rgba(0, 255, 255, 0.8),
+                0 0 30px rgba(0, 255, 255, 0.6)
+              `,
+              fontWeight: 900,
+              textTransform: "uppercase",
+            }}
+          >
+            Giải {prizeData[selectedPrize].text}
+          </h2>
         </motion.div>
 
         {/* Number Display */}
@@ -554,6 +573,8 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+
+      <PrizeSelect onSelect={setSelectedPrize} selectedPrize={selectedPrize} />
     </div>
   );
 }
