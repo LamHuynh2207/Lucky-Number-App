@@ -112,6 +112,10 @@ export default function App() {
       if (data.adminName) {
         setCurrentAdminName(data.adminName);
       }
+
+      if (data.prize) {
+        setSelectedPrize(data.prize);
+      }
     });
 
     // Listen to history
@@ -347,6 +351,7 @@ export default function App() {
     if (!isDemoMode && database) {
       await update(ref(database, "session"), {
         numbers: resetData,
+        allSpun: false,
       });
     }
 
@@ -405,6 +410,18 @@ export default function App() {
   };
 
   const isAnySpinning = Object.values(spinning).some((s) => s);
+
+  const handlePrizeChange = (prize: Prize) => {
+    if (!isAdmin) {
+      setShowAdminDialog(true);
+      return;
+    }
+
+    setSelectedPrize(prize);
+    if (!isDemoMode && database) {
+      update(ref(database, "session"), { prize, allSpun: false });
+    }
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -615,7 +632,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <PrizeSelect onSelect={setSelectedPrize} selectedPrize={selectedPrize} />
+      <PrizeSelect onSelect={handlePrizeChange} selectedPrize={selectedPrize} />
     </div>
   );
 }
