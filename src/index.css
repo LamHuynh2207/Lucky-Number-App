@@ -639,9 +639,11 @@
     height: calc(var(--spacing) * 28);
   }
 
-  .h-36 {
+  @media (min-width: 1440px) {
+  .xl\:h-36 {
     height: calc(var(--spacing) * 36);
   }
+}
 
   .h-full {
     height: 100%;

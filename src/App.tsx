@@ -9,7 +9,7 @@ import {
   remove,
   onDisconnect,
 } from "firebase/database";
-import { database, isFirebaseConfigured } from "./config/firebase";
+import { database } from "./config/firebase";
 import { NumberDisplay } from "./components/NumberDisplay";
 import { STEMParticles } from "./components/STEMParticles";
 import { RobotMascot } from "./components/RobotMascot";
@@ -40,15 +40,9 @@ interface SpinningState {
   ones: boolean;
 }
 
-interface SpunState {
-  thousands: boolean;
-  hundreds: boolean;
-  tens: boolean;
-  ones: boolean;
-}
-
 const ADMIN_KEY = "STEMDAY2025";
 const spinAudio = new Audio(spinSound);
+const resetData = { thousands: 0, hundreds: 0, tens: 0, ones: 0 };
 
 export default function App() {
   const [numbers, setNumbers] = useState({
@@ -63,18 +57,18 @@ export default function App() {
     tens: false,
     ones: false,
   });
-  const [spunDigits, setSpunDigits] = useState<SpunState>({
+  const spunDigitRef = useRef<SpinningState>({
     thousands: false,
     hundreds: false,
     tens: false,
     ones: false,
   });
+
   const [antAnimating, setAntAnimating] = useState(false);
   const [recentNumbers, setRecentNumbers] = useState<LuckyNumber[]>([]);
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState<Prize>(Prize.THIRD);
 
-  // Firebase Realtime states
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentAdminName, setCurrentAdminName] = useState<string>("");
   const [authError, setAuthError] = useState("");
@@ -84,32 +78,47 @@ export default function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const adminIdRef = useRef<string>("");
-  const firebaseConfigured = isFirebaseConfigured();
 
   // Initialize Firebase listeners
   useEffect(() => {
-    if (!firebaseConfigured || isDemoMode || !database) return;
+    if (isDemoMode || !database) return;
 
     // Listen to session data (numbers & spinning state)
     const sessionRef = ref(database, "session");
     const unsubSession = onValue(sessionRef, (snapshot) => {
+      if (isAdmin) return;
+
       const data = snapshot.val();
-      if (data) {
-        if (data.numbers) {
-          setNumbers(data.numbers);
+      if (!data) return;
+
+      if (data.numbers) {
+        setNumbers(data.numbers);
+        if (JSON.stringify(data.numbers) === JSON.stringify(resetData)) {
+          spinAudio.pause();
+          spinAudio.currentTime = 0;
         }
-        if (data.spinning) {
-          setSpinning(data.spinning);
+
+        if (data.allSpun) handleCelebrate(data.numbers);
+      }
+
+      if (data.spinning) {
+        setSpinning(data.spinning);
+
+        if (Object.values(data.spinning).some((s) => s)) {
+          spinAudio.play();
         }
-        if (data.adminName) {
-          setCurrentAdminName(data.adminName);
-        }
+      }
+
+      if (data.adminName) {
+        setCurrentAdminName(data.adminName);
       }
     });
 
     // Listen to history
     const historyRef = ref(database, "history");
     const unsubHistory = onValue(historyRef, (snapshot) => {
+      if (isAdmin) return;
+
       const data = snapshot.val();
       if (data && Array.isArray(data)) {
         setRecentNumbers(data.filter(Boolean).slice(0, 10));
@@ -122,17 +131,17 @@ export default function App() {
       unsubSession();
       unsubHistory();
     };
-  }, [isAdmin, isDemoMode, firebaseConfigured]);
+  }, [isAdmin, isDemoMode]);
 
   // Load local history on mount
   useEffect(() => {
     const saved = localStorage.getItem("luckyNumbers");
-    if (saved) {
-      try {
-        setRecentNumbers(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading saved numbers:", e);
-      }
+    if (!saved) return;
+
+    try {
+      setRecentNumbers(JSON.parse(saved));
+    } catch (e) {
+      console.error("Error loading saved numbers:", e);
     }
   }, []);
 
@@ -159,7 +168,7 @@ export default function App() {
         return;
       }
 
-      if (!firebaseConfigured || !database) {
+      if (!database) {
         setIsDemoMode(true);
         setIsAdmin(true);
         const adminName = `Admin-${new Date().getHours()}:${String(
@@ -213,6 +222,21 @@ export default function App() {
     }
   };
 
+  const handleCelebrate = (numbers) => {
+    const finalNumber =
+      numbers.thousands.toString() +
+      numbers.hundreds.toString() +
+      numbers.tens.toString() +
+      numbers.ones.toString();
+
+    setWinnerNumber(finalNumber);
+    setShowWinnerCelebration(true);
+    setTimeout(() => {
+      setShowWinnerCelebration(false);
+      if (isAdmin) saveNumber(finalNumber);
+    }, 6000);
+  };
+
   const spinNumber = async (position: keyof SpinningState) => {
     if (!isAdmin) {
       setShowAdminDialog(true);
@@ -235,50 +259,25 @@ export default function App() {
       const numbersUpdate = { ...numbers, [position]: newNumber };
       const spinningUpdateOff = { ...spinning, [position]: false };
 
-      if (!isDemoMode && database) {
-        await update(ref(database, "session"), {
-          numbers: numbersUpdate,
-          spinning: spinningUpdateOff,
-        });
-      }
-
       setNumbers(numbersUpdate);
       setSpinning(spinningUpdateOff);
       spinAudio.pause();
       spinAudio.currentTime = 0;
 
-      setSpunDigits((prev) => {
-        const updated = { ...prev, [position]: true };
+      const updated = { ...spunDigitRef.current, [position]: true };
+      const allSpun =
+        updated.thousands && updated.hundreds && updated.tens && updated.ones;
+      spunDigitRef.current = updated;
 
-        const allSpun =
-          updated.thousands && updated.hundreds && updated.tens && updated.ones;
+      if (!isDemoMode && database) {
+        await update(ref(database, "session"), {
+          numbers: numbersUpdate,
+          spinning: spinningUpdateOff,
+          allSpun,
+        });
+      }
 
-        if (allSpun) {
-          setTimeout(() => {
-            const finalNumber =
-              (position === "thousands"
-                ? newNumber
-                : numbers.thousands
-              ).toString() +
-              (position === "hundreds"
-                ? newNumber
-                : numbers.hundreds
-              ).toString() +
-              (position === "tens" ? newNumber : numbers.tens).toString() +
-              (position === "ones" ? newNumber : numbers.ones).toString();
-
-            setWinnerNumber(finalNumber);
-            setShowWinnerCelebration(true);
-
-            setTimeout(() => {
-              setShowWinnerCelebration(false);
-              saveNumber(finalNumber);
-            }, 6000);
-          }, 100);
-        }
-
-        return updated;
-      });
+      if (allSpun) handleCelebrate(numbersUpdate);
 
       playSound();
     }, 2000);
@@ -345,8 +344,6 @@ export default function App() {
       return;
     }
 
-    const resetData = { thousands: 0, hundreds: 0, tens: 0, ones: 0 };
-
     if (!isDemoMode && database) {
       await update(ref(database, "session"), {
         numbers: resetData,
@@ -354,12 +351,6 @@ export default function App() {
     }
 
     setNumbers(resetData);
-    setSpunDigits({
-      thousands: false,
-      hundreds: false,
-      tens: false,
-      ones: false,
-    });
     setAntAnimating(true);
     setTimeout(() => setAntAnimating(false), 1200);
   };
@@ -489,7 +480,7 @@ export default function App() {
         <img
           src={stemDayLogo}
           alt="STEM DAY"
-          className="h-36 object-contain mx-auto drop-shadow-[0_0_30px_rgba(0,255,255,0.6)]"
+          className="h-24 xl:h-36 object-contain mx-auto drop-shadow-[0_0_30px_rgba(0,255,255,0.6)]"
         />
       </motion.div>
 

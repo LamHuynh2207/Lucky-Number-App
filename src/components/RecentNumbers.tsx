@@ -80,14 +80,19 @@ export function RecentNumbers({
         )}
       </div>
 
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+      <div
+        className="space-y-2 max-h-[400px] overflow-y-auto"
+        style={{
+          scrollbarWidth: "none",
+        }}
+      >
         {numbers.length === 0 ? (
           <p className="text-cyan-300/60 text-sm">Chưa có số nào được quay</p>
         ) : (
           <AnimatePresence mode="popLayout">
             {numbers.map((item, index) => (
               <motion.div
-                key={`${item.number}-${item.timestamp}-${index}`}
+                key={`${item.number}-${item.timestamp}`}
                 initial={{ opacity: 0, x: 20, height: 0 }}
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
