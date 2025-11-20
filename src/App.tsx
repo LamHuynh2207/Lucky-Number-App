@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Volume2, VolumeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ref,
@@ -32,6 +33,7 @@ import stemDayLogo from "figma:asset/92e9417244f1b12c23a75e49f37a6d9c60ae2460.pn
 
 import PrizeSelect from "./components/PrizeSelect";
 import spinSound from "./assets/wheel.mp3";
+import bgSound from "./assets/background.mp3";
 
 interface SpinningState {
   thousands: boolean;
@@ -41,8 +43,11 @@ interface SpinningState {
 }
 
 const ADMIN_KEY = "STEMDAY2025";
-const spinAudio = new Audio(spinSound);
 const resetData = { thousands: 0, hundreds: 0, tens: 0, ones: 0 };
+
+const spinAudio = new Audio(spinSound);
+const bgAudio = new Audio(bgSound);
+bgAudio.loop = true;
 
 export default function App() {
   const [numbers, setNumbers] = useState({
@@ -77,6 +82,7 @@ export default function App() {
   const [winnerNumber, setWinnerNumber] = useState("");
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [bgPlaying, setBgPlaying] = useState(false);
   const adminIdRef = useRef<string>("");
 
   // Initialize Firebase listeners
@@ -148,6 +154,11 @@ export default function App() {
       console.error("Error loading saved numbers:", e);
     }
   }, []);
+
+  useEffect(() => {
+    if (bgPlaying) bgAudio.play();
+    else bgAudio.pause();
+  }, [bgPlaying]);
 
   const releaseAdminSession = async () => {
     if (!database) return;
@@ -633,6 +644,22 @@ export default function App() {
       </div>
 
       <PrizeSelect onSelect={handlePrizeChange} selectedPrize={selectedPrize} />
+
+      <div
+        onClick={() => setBgPlaying(!bgPlaying)}
+        className="absolute bottom-4 left-4 z-10 cursor-pointer"
+      >
+        {bgPlaying ? (
+          <Volume2 className="size-12" stroke="white" width={36} height={36} />
+        ) : (
+          <VolumeOff
+            className="size-12"
+            stroke="white"
+            width={36}
+            height={36}
+          />
+        )}
+      </div>
     </div>
   );
 }
