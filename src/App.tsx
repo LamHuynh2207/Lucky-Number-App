@@ -31,6 +31,7 @@ import fptLogo from "figma:asset/b6356dbc2eb526e3e2efc9fb62671358d845ef9a.png";
 import stemDayLogo from "figma:asset/92e9417244f1b12c23a75e49f37a6d9c60ae2460.png";
 
 import PrizeSelect from "./components/PrizeSelect";
+import spinSound from "./assets/wheel.mp3";
 
 interface SpinningState {
   thousands: boolean;
@@ -47,6 +48,7 @@ interface SpunState {
 }
 
 const ADMIN_KEY = "STEMDAY2025";
+const spinAudio = new Audio(spinSound);
 
 export default function App() {
   const [numbers, setNumbers] = useState({
@@ -226,6 +228,7 @@ export default function App() {
     }
 
     setSpinning(spinningUpdate);
+    spinAudio.play();
 
     setTimeout(async () => {
       const newNumber = Math.floor(Math.random() * 10);
@@ -241,6 +244,8 @@ export default function App() {
 
       setNumbers(numbersUpdate);
       setSpinning(spinningUpdateOff);
+      spinAudio.pause();
+      spinAudio.currentTime = 0;
 
       setSpunDigits((prev) => {
         const updated = { ...prev, [position]: true };
