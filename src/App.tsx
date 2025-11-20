@@ -71,7 +71,6 @@ export default function App() {
 
   const [antAnimating, setAntAnimating] = useState(false);
   const [recentNumbers, setRecentNumbers] = useState<LuckyNumber[]>([]);
-  const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState<Prize>(Prize.THIRD);
 
   const [isAdmin, setIsAdmin] = useState(false);
@@ -344,13 +343,11 @@ export default function App() {
 
     setRecentNumbers(updated);
 
-    setShowSaveNotification(true);
     toast.success("✨ Đã lưu số trúng thưởng!", {
-      description: `Số may mắn: ${number}`,
       duration: 3000,
     });
 
-    setTimeout(() => setShowSaveNotification(false), 3000);
+    resetNumbers();
   };
 
   const resetNumbers = async () => {
@@ -367,6 +364,8 @@ export default function App() {
     }
 
     setNumbers(resetData);
+    spunDigitRef.current = resetData;
+
     setAntAnimating(true);
     setTimeout(() => setAntAnimating(false), 1200);
   };
@@ -627,20 +626,6 @@ export default function App() {
         >
           🔄 RESET
         </Button>
-
-        {/* Save Notification */}
-        <AnimatePresence>
-          {showSaveNotification && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute bottom-4 bg-green-500/90 backdrop-blur-md text-white px-6 py-3 rounded-lg shadow-lg border border-green-300/50"
-            >
-              ✓ Đã lưu số trúng thưởng!
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       <PrizeSelect onSelect={handlePrizeChange} selectedPrize={selectedPrize} />
