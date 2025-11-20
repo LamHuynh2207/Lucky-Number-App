@@ -92,7 +92,7 @@ export function RecentNumbers({
                 animate={{ opacity: 1, x: 0, height: "auto" }}
                 exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
                 transition={{ duration: 0.3 }}
-                className="flex justify-between items-center gap-2 bg-blue-950/50 rounded-lg p-2 border border-cyan-500/20 group hover:border-cyan-400/40 transition-colors overflow-hidden"
+                className="flex justify-between items-center gap-3 bg-blue-950/50 rounded-lg p-2 border border-cyan-500/20 group hover:border-cyan-400/40 transition-colors overflow-hidden"
               >
                 <span
                   className="font-semibold ml-2 flex-shrink-0"

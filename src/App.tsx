@@ -1,10 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ref, onValue, set, update, get, remove, onDisconnect } from 'firebase/database';
-import { database, isFirebaseConfigured } from './config/firebase';
-import { NumberDisplay } from './components/NumberDisplay';
-import { STEMParticles } from './components/STEMParticles';
-import { RobotMascot } from './components/RobotMascot';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  ref,
+  onValue,
+  set,
+  update,
+  get,
+  remove,
+  onDisconnect,
+} from "firebase/database";
+import { database, isFirebaseConfigured } from "./config/firebase";
+import { NumberDisplay } from "./components/NumberDisplay";
+import { STEMParticles } from "./components/STEMParticles";
+import { RobotMascot } from "./components/RobotMascot";
 
 import {
   LuckyNumber,
@@ -12,15 +20,15 @@ import {
   prizeData,
   RecentNumbers,
 } from "./components/RecentNumbers";
-import { AdminKeyDialog } from './components/AdminKeyDialog';
-import { ViewerNotification } from './components/ViewerNotification';
-import { WinnerCelebration } from './components/WinnerCelebration';
-import { Button } from './components/ui/button';
-import { toast } from 'sonner@2.0.3';
-import { Toaster } from './components/ui/sonner';
-import backgroundImage from './assets/bgr.jpg';
-import fptLogo from 'figma:asset/b6356dbc2eb526e3e2efc9fb62671358d845ef9a.png';
-import stemDayLogo from 'figma:asset/92e9417244f1b12c23a75e49f37a6d9c60ae2460.png';
+import { AdminKeyDialog } from "./components/AdminKeyDialog";
+import { ViewerNotification } from "./components/ViewerNotification";
+import { WinnerCelebration } from "./components/WinnerCelebration";
+import { Button } from "./components/ui/button";
+import { toast } from "sonner@2.0.3";
+import { Toaster } from "./components/ui/sonner";
+import backgroundImage from "./assets/bgr.jpg";
+import fptLogo from "figma:asset/b6356dbc2eb526e3e2efc9fb62671358d845ef9a.png";
+import stemDayLogo from "figma:asset/92e9417244f1b12c23a75e49f37a6d9c60ae2460.png";
 
 import PrizeSelect from "./components/PrizeSelect";
 
@@ -38,10 +46,15 @@ interface SpunState {
   ones: boolean;
 }
 
-const ADMIN_KEY = 'STEMDAY2025';
+const ADMIN_KEY = "STEMDAY2025";
 
 export default function App() {
-  const [numbers, setNumbers] = useState({ thousands: 0, hundreds: 0, tens: 0, ones: 0 });
+  const [numbers, setNumbers] = useState({
+    thousands: 0,
+    hundreds: 0,
+    tens: 0,
+    ones: 0,
+  });
   const [spinning, setSpinning] = useState<SpinningState>({
     thousands: false,
     hundreds: false,
@@ -61,14 +74,14 @@ export default function App() {
 
   // Firebase Realtime states
   const [isAdmin, setIsAdmin] = useState(false);
-  const [currentAdminName, setCurrentAdminName] = useState<string>('');
-  const [authError, setAuthError] = useState('');
+  const [currentAdminName, setCurrentAdminName] = useState<string>("");
+  const [authError, setAuthError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
-  const [winnerNumber, setWinnerNumber] = useState('');
+  const [winnerNumber, setWinnerNumber] = useState("");
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
-  const adminIdRef = useRef<string>('');
+  const adminIdRef = useRef<string>("");
   const firebaseConfigured = isFirebaseConfigured();
 
   // Initialize Firebase listeners
@@ -76,7 +89,7 @@ export default function App() {
     if (!firebaseConfigured || isDemoMode || !database) return;
 
     // Listen to session data (numbers & spinning state)
-    const sessionRef = ref(database, 'session');
+    const sessionRef = ref(database, "session");
     const unsubSession = onValue(sessionRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -93,7 +106,7 @@ export default function App() {
     });
 
     // Listen to history
-    const historyRef = ref(database, 'history');
+    const historyRef = ref(database, "history");
     const unsubHistory = onValue(historyRef, (snapshot) => {
       const data = snapshot.val();
       if (data && Array.isArray(data)) {
@@ -111,12 +124,12 @@ export default function App() {
 
   // Load local history on mount
   useEffect(() => {
-    const saved = localStorage.getItem('luckyNumbers');
+    const saved = localStorage.getItem("luckyNumbers");
     if (saved) {
       try {
         setRecentNumbers(JSON.parse(saved));
       } catch (e) {
-        console.error('Error loading saved numbers:', e);
+        console.error("Error loading saved numbers:", e);
       }
     }
   }, []);
@@ -124,22 +137,22 @@ export default function App() {
   const releaseAdminSession = async () => {
     if (!database) return;
     try {
-      const adminRef = ref(database, 'session/adminId');
+      const adminRef = ref(database, "session/adminId");
       await remove(adminRef);
-      const adminNameRef = ref(database, 'session/adminName');
+      const adminNameRef = ref(database, "session/adminName");
       await remove(adminNameRef);
     } catch (error) {
-      console.error('Error releasing admin session:', error);
+      console.error("Error releasing admin session:", error);
     }
   };
 
   const handleAuth = async (key: string) => {
     setIsAuthLoading(true);
-    setAuthError('');
+    setAuthError("");
 
     try {
       if (key !== ADMIN_KEY) {
-        setAuthError('❌ Mã admin không đúng!');
+        setAuthError("❌ Mã admin không đúng!");
         setIsAuthLoading(false);
         return;
       }
@@ -147,22 +160,25 @@ export default function App() {
       if (!firebaseConfigured || !database) {
         setIsDemoMode(true);
         setIsAdmin(true);
-        const adminName = `Admin-${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+        const adminName = `Admin-${new Date().getHours()}:${String(
+          new Date().getMinutes()
+        ).padStart(2, "0")}`;
         setCurrentAdminName(adminName);
         setShowAdminDialog(false);
-        toast.success('🎉 Xác thực thành công!', {
-          description: 'Bạn có thể quay số. App đang chạy ở chế độ Demo (offline).',
+        toast.success("🎉 Xác thực thành công!", {
+          description:
+            "Bạn có thể quay số. App đang chạy ở chế độ Demo (offline).",
           duration: 3000,
         });
         setIsAuthLoading(false);
         return;
       }
 
-      const adminRef = ref(database, 'session/adminId');
+      const adminRef = ref(database, "session/adminId");
       const snapshot = await get(adminRef);
 
       if (snapshot.exists() && snapshot.val()) {
-        setAuthError('⚠️ Đã có admin đang hoạt động! Bạn chỉ có thể xem.');
+        setAuthError("⚠️ Đã có admin đang hoạt động! Bạn chỉ có thể xem.");
         setIsAuthLoading(false);
         return;
       }
@@ -171,23 +187,25 @@ export default function App() {
       adminIdRef.current = newAdminId;
       await set(adminRef, newAdminId);
 
-      const adminName = `Admin-${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, '0')}`;
-      await set(ref(database, 'session/adminName'), adminName);
+      const adminName = `Admin-${new Date().getHours()}:${String(
+        new Date().getMinutes()
+      ).padStart(2, "0")}`;
+      await set(ref(database, "session/adminName"), adminName);
 
-      onDisconnect(ref(database, 'session/adminId')).remove();
-      onDisconnect(ref(database, 'session/adminName')).remove();
+      onDisconnect(ref(database, "session/adminId")).remove();
+      onDisconnect(ref(database, "session/adminName")).remove();
 
       setIsAdmin(true);
       setIsDemoMode(false);
       setCurrentAdminName(adminName);
       setShowAdminDialog(false);
-      toast.success('🎉 Xác thực thành công!', {
-        description: 'Bạn có thể điều khiển quay số realtime.',
+      toast.success("🎉 Xác thực thành công!", {
+        description: "Bạn có thể điều khiển quay số realtime.",
         duration: 3000,
       });
     } catch (error) {
-      console.error('Auth error:', error);
-      setAuthError('❌ Lỗi kết nối Firebase. Vui lòng kiểm tra cấu hình.');
+      console.error("Auth error:", error);
+      setAuthError("❌ Lỗi kết nối Firebase. Vui lòng kiểm tra cấu hình.");
     } finally {
       setIsAuthLoading(false);
     }
@@ -202,7 +220,7 @@ export default function App() {
     const spinningUpdate = { ...spinning, [position]: true };
 
     if (!isDemoMode && database) {
-      await update(ref(database, 'session'), {
+      await update(ref(database, "session"), {
         spinning: spinningUpdate,
       });
     }
@@ -215,7 +233,7 @@ export default function App() {
       const spinningUpdateOff = { ...spinning, [position]: false };
 
       if (!isDemoMode && database) {
-        await update(ref(database, 'session'), {
+        await update(ref(database, "session"), {
           numbers: numbersUpdate,
           spinning: spinningUpdateOff,
         });
@@ -224,18 +242,25 @@ export default function App() {
       setNumbers(numbersUpdate);
       setSpinning(spinningUpdateOff);
 
-      setSpunDigits(prev => {
+      setSpunDigits((prev) => {
         const updated = { ...prev, [position]: true };
 
-        const allSpun = updated.thousands && updated.hundreds && updated.tens && updated.ones;
+        const allSpun =
+          updated.thousands && updated.hundreds && updated.tens && updated.ones;
 
         if (allSpun) {
           setTimeout(() => {
             const finalNumber =
-              (position === 'thousands' ? newNumber : numbers.thousands).toString() +
-              (position === 'hundreds' ? newNumber : numbers.hundreds).toString() +
-              (position === 'tens' ? newNumber : numbers.tens).toString() +
-              (position === 'ones' ? newNumber : numbers.ones).toString();
+              (position === "thousands"
+                ? newNumber
+                : numbers.thousands
+              ).toString() +
+              (position === "hundreds"
+                ? newNumber
+                : numbers.hundreds
+              ).toString() +
+              (position === "tens" ? newNumber : numbers.tens).toString() +
+              (position === "ones" ? newNumber : numbers.ones).toString();
 
             setWinnerNumber(finalNumber);
             setShowWinnerCelebration(true);
@@ -255,7 +280,8 @@ export default function App() {
   };
 
   const playSound = () => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = new (window.AudioContext ||
+      (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
@@ -263,10 +289,13 @@ export default function App() {
     gainNode.connect(audioContext.destination);
 
     oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
+    oscillator.type = "sine";
 
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioContext.currentTime + 0.1
+    );
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.1);
@@ -274,13 +303,10 @@ export default function App() {
 
   const saveNumber = async (number: string) => {
     const now = new Date();
-    const timestamp = now.toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    const timestamp = now.toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
 
     const newEntry: LuckyNumber = { number, timestamp, prize: selectedPrize };
@@ -288,19 +314,19 @@ export default function App() {
 
     if (!isDemoMode && database) {
       try {
-        await set(ref(database, 'history'), updated);
+        await set(ref(database, "history"), updated);
       } catch (error) {
-        console.error('Error saving to Firebase:', error);
-        localStorage.setItem('luckyNumbers', JSON.stringify(updated));
+        console.error("Error saving to Firebase:", error);
+        localStorage.setItem("luckyNumbers", JSON.stringify(updated));
       }
     } else {
-      localStorage.setItem('luckyNumbers', JSON.stringify(updated));
+      localStorage.setItem("luckyNumbers", JSON.stringify(updated));
     }
 
     setRecentNumbers(updated);
 
     setShowSaveNotification(true);
-    toast.success('✨ Đã lưu số trúng thưởng!', {
+    toast.success("✨ Đã lưu số trúng thưởng!", {
       description: `Số may mắn: ${number}`,
       duration: 3000,
     });
@@ -317,13 +343,18 @@ export default function App() {
     const resetData = { thousands: 0, hundreds: 0, tens: 0, ones: 0 };
 
     if (!isDemoMode && database) {
-      await update(ref(database, 'session'), {
+      await update(ref(database, "session"), {
         numbers: resetData,
       });
     }
 
     setNumbers(resetData);
-    setSpunDigits({ thousands: false, hundreds: false, tens: false, ones: false });
+    setSpunDigits({
+      thousands: false,
+      hundreds: false,
+      tens: false,
+      ones: false,
+    });
     setAntAnimating(true);
     setTimeout(() => setAntAnimating(false), 1200);
   };
@@ -334,15 +365,15 @@ export default function App() {
       return;
     }
 
-    if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử số đã quay?')) {
+    if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử số đã quay?")) {
       if (!isDemoMode && database) {
-        await set(ref(database, 'history'), []);
+        await set(ref(database, "history"), []);
       } else {
-        localStorage.removeItem('luckyNumbers');
+        localStorage.removeItem("luckyNumbers");
       }
       setRecentNumbers([]);
-      toast.success('Đã xóa lịch sử!', {
-        description: 'Tất cả số đã quay đã được xóa',
+      toast.success("Đã xóa lịch sử!", {
+        description: "Tất cả số đã quay đã được xóa",
         duration: 2000,
       });
     }
@@ -358,26 +389,26 @@ export default function App() {
 
     if (!isDemoMode && database) {
       if (updated.length === 0) {
-        await set(ref(database, 'history'), []);
+        await set(ref(database, "history"), []);
       } else {
-        await set(ref(database, 'history'), updated);
+        await set(ref(database, "history"), updated);
       }
     } else {
       if (updated.length === 0) {
-        localStorage.removeItem('luckyNumbers');
+        localStorage.removeItem("luckyNumbers");
       } else {
-        localStorage.setItem('luckyNumbers', JSON.stringify(updated));
+        localStorage.setItem("luckyNumbers", JSON.stringify(updated));
       }
     }
 
     setRecentNumbers(updated);
-    toast.success('Đã xóa số!', {
-      description: 'Số đã được xóa khỏi lịch sử',
+    toast.success("Đã xóa số!", {
+      description: "Số đã được xóa khỏi lịch sử",
       duration: 2000,
     });
   };
 
-  const isAnySpinning = Object.values(spinning).some(s => s);
+  const isAnySpinning = Object.values(spinning).some((s) => s);
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -392,17 +423,14 @@ export default function App() {
       )}
 
       {/* Winner Celebration */}
-      <WinnerCelebration
-        show={showWinnerCelebration}
-        number={winnerNumber}
-      />
+      <WinnerCelebration show={showWinnerCelebration} number={winnerNumber} />
 
       {/* Admin Key Dialog */}
       <AdminKeyDialog
         isOpen={showAdminDialog}
         onClose={() => {
           setShowAdminDialog(false);
-          setAuthError('');
+          setAuthError("");
         }}
         onSubmit={handleAuth}
         isLoading={isAuthLoading}
@@ -441,6 +469,25 @@ export default function App() {
       {/* STEM Particles */}
       <STEMParticles isActive={isAnySpinning} />
 
+      <motion.div
+        animate={{
+          opacity: [0.8, 1, 0.8],
+          scale: [0.98, 1, 0.98],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="mb-2 w-full absolute top-4"
+      >
+        <img
+          src={stemDayLogo}
+          alt="STEM DAY"
+          className="h-36 object-contain mx-auto drop-shadow-[0_0_30px_rgba(0,255,255,0.6)]"
+        />
+      </motion.div>
+
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-6">
         {/* Title */}
@@ -449,24 +496,6 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <motion.div
-            animate={{
-              opacity: [0.8, 1, 0.8],
-              scale: [0.98, 1, 0.98],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="mb-2"
-          >
-            <img
-              src={stemDayLogo}
-              alt="STEM DAY"
-              className="h-16 object-contain mx-auto drop-shadow-[0_0_30px_rgba(0,255,255,0.6)]"
-            />
-          </motion.div>
           <h1
             className="text-5xl tracking-wider mb-4"
             style={{
@@ -508,10 +537,26 @@ export default function App() {
             <RobotMascot isAnimating={antAnimating} flipHorizontal={true} />
 
             <div className="flex gap-8 items-center justify-center bg-blue-950/40 backdrop-blur-md px-12 py-10 rounded-3xl border-2 border-cyan-400/40 shadow-[0_0_60px_rgba(0,255,255,0.3)]">
-              <NumberDisplay value={numbers.thousands} isSpinning={spinning.thousands} position="thousands" />
-              <NumberDisplay value={numbers.hundreds} isSpinning={spinning.hundreds} position="hundreds" />
-              <NumberDisplay value={numbers.tens} isSpinning={spinning.tens} position="tens" />
-              <NumberDisplay value={numbers.ones} isSpinning={spinning.ones} position="ones" />
+              <NumberDisplay
+                value={numbers.thousands}
+                isSpinning={spinning.thousands}
+                position="thousands"
+              />
+              <NumberDisplay
+                value={numbers.hundreds}
+                isSpinning={spinning.hundreds}
+                position="hundreds"
+              />
+              <NumberDisplay
+                value={numbers.tens}
+                isSpinning={spinning.tens}
+                position="tens"
+              />
+              <NumberDisplay
+                value={numbers.ones}
+                isSpinning={spinning.ones}
+                position="ones"
+              />
             </div>
 
             <RobotMascot isAnimating={antAnimating} flipHorizontal={false} />
@@ -521,28 +566,28 @@ export default function App() {
         {/* Control Buttons - 4 individual buttons */}
         <div className="grid grid-cols-4 gap-4 mb-4">
           <Button
-            onClick={() => spinNumber('thousands')}
+            onClick={() => spinNumber("thousands")}
             disabled={spinning.thousands || isAnySpinning}
             className="px-8 py-6 text-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 border-2 border-cyan-300/50 shadow-[0_0_20px_rgba(0,255,255,0.6)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Hàng nghìn
           </Button>
           <Button
-            onClick={() => spinNumber('hundreds')}
+            onClick={() => spinNumber("hundreds")}
             disabled={spinning.hundreds || isAnySpinning}
             className="px-8 py-6 text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 border-2 border-green-300/50 shadow-[0_0_20px_rgba(0,255,0,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Hàng trăm
           </Button>
           <Button
-            onClick={() => spinNumber('tens')}
+            onClick={() => spinNumber("tens")}
             disabled={spinning.tens || isAnySpinning}
             className="px-8 py-6 text-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 border-2 border-purple-300/50 shadow-[0_0_20px_rgba(200,0,255,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Hàng chục
           </Button>
           <Button
-            onClick={() => spinNumber('ones')}
+            onClick={() => spinNumber("ones")}
             disabled={spinning.ones || isAnySpinning}
             className="px-8 py-6 text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 border-2 border-orange-300/50 shadow-[0_0_20px_rgba(255,100,0,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
